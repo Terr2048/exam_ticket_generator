@@ -202,7 +202,7 @@ void GUI::getValueDynamicSpinBox(int &value, const int spin_box_id)
    value = spin_box -> value();
 }
 
-//Говнокод Данилки
+//Это просто кто-то здесь оставил, не будем тыкать пальцем, проект очень древний.
 //
 //void GUI::getAllValueDynamicSpinBox(std::unordered_map <int, int> &map,
 //                                     const int count_section)
