@@ -36,19 +36,19 @@ using namespace std;
 namespace WP {
 
 	struct Header {
-		string name_teh_school; // шапка (название организации)
+		string name_teh_school; // С€Р°РїРєР° (РЅР°Р·РІР°РЅРёРµ РѕСЂРіР°РЅРёР·Р°С†РёРё)
 
-		string examined; // рассмотрено...
-		string review_date; // дата рассмотрения
-		string protocol; // протокол
-		string chairperson; // председатель
+		string examined; // СЂР°СЃСЃРјРѕС‚СЂРµРЅРѕ...
+		string review_date; // РґР°С‚Р° СЂР°СЃСЃРјРѕС‚СЂРµРЅРёСЏ
+		string protocol; // РїСЂРѕС‚РѕРєРѕР»
+		string chairperson; // РїСЂРµРґСЃРµРґР°С‚РµР»СЊ
 
-		string affirm; // УТВЕРЖДАЮ:...
-		string date_apporval; // дата утверждения
-		string deputy_director; // зам. директор
+		string affirm; // РЈРўР’Р•Р Р–Р”РђР®:...
+		string date_apporval; // РґР°С‚Р° СѓС‚РІРµСЂР¶РґРµРЅРёСЏ
+		string deputy_director; // Р·Р°Рј. РґРёСЂРµРєС‚РѕСЂ
 
-		string discipline; // дисциплина
-		string specialty; // специальность
+		string discipline; // РґРёСЃС†РёРїР»РёРЅР°
+		string specialty; // СЃРїРµС†РёР°Р»СЊРЅРѕСЃС‚СЊ
 	};
 
 	struct QuestionsList {

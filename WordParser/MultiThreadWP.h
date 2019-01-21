@@ -19,7 +19,7 @@ namespace WP {
 		function<void(string)> m_showException;
 	public:
 
-		//Проброс методов
+		//РџСЂРѕР±СЂРѕСЃ РјРµС‚РѕРґРѕРІ
 		MultiThreadWP(function<void(string)>, function<void(string)> showMessage);
 		~MultiThreadWP();
 		future<vector<QuestionsList>> readFile(string path);

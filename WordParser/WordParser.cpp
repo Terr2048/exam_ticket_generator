@@ -12,16 +12,16 @@ namespace WP {
 	WordParser::WordParser(function<void(string)> showMessage)
 		: m_showMessage(showMessage)
 	{
-		// Инициализация COM либы в текущем потоке
+		// РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ COM Р»РёР±С‹ РІ С‚РµРєСѓС‰РµРј РїРѕС‚РѕРєРµ
 		CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 
 
 		HRESULT hr = m_spWordApp.CreateInstance(__uuidof(Word::Application));
 		if (FAILED(hr))
 		{
-			throw exception("Ошибка запуска MSWord");
+			throw exception("РћС€РёР±РєР° Р·Р°РїСѓСЃРєР° MSWord");
 		}
-		// Делает MSWord невидимым
+		// Р”РµР»Р°РµС‚ MSWord РЅРµРІРёРґРёРјС‹Рј
 		m_spWordApp->Visible = VARIANT_FALSE;
 	}
 
@@ -29,20 +29,20 @@ namespace WP {
 	{
 		closeFile();
 		m_spWordApp->Quit();
-		// Деинициализация COM либы в текущем потоке
+		// Р”РµРёРЅРёС†РёР°Р»РёР·Р°С†РёСЏ COM Р»РёР±С‹ РІ С‚РµРєСѓС‰РµРј РїРѕС‚РѕРєРµ
 		CoUninitialize();
 	}
 
 	vector<QuestionsList> WordParser::readFile(string path)
 	{
 		if (path.empty()) 
-			throw exception("Файл не выбран");
+			throw exception("Р¤Р°Р№Р» РЅРµ РІС‹Р±СЂР°РЅ");
 		closeFile();
 		m_questionsLists.clear();
-		m_showMessage("Чтение файла: " + path);
+		m_showMessage("Р§С‚РµРЅРёРµ С„Р°Р№Р»Р°: " + path);
 		m_spDoc = m_spWordApp->Documents->Open(&_variant_t(path.c_str()));
 
-		// Вычисление количества секций и вопросов в них
+		// Р’С‹С‡РёСЃР»РµРЅРёРµ РєРѕР»РёС‡РµСЃС‚РІР° СЃРµРєС†РёР№ Рё РІРѕРїСЂРѕСЃРѕРІ РІ РЅРёС…
 		int listCount = m_spDoc->Lists->GetCount();
 		for (int i = 0; i < listCount; i++) {
 			Word::ListPtr spList = m_spDoc->Lists->Item(i + 1);
@@ -58,13 +58,13 @@ namespace WP {
 	void WordParser::createHeader(Header header)
 	{
 		if (m_spDoc == nullptr)
-			throw exception("Файл не выбран");
-		m_showMessage("Создание заголовка.");
-		//Копирование списка вопросов
+			throw exception("Р¤Р°Р№Р» РЅРµ РІС‹Р±СЂР°РЅ");
+		m_showMessage("РЎРѕР·РґР°РЅРёРµ Р·Р°РіРѕР»РѕРІРєР°.");
+		//РљРѕРїРёСЂРѕРІР°РЅРёРµ СЃРїРёСЃРєР° РІРѕРїСЂРѕСЃРѕРІ
 		m_spDoc->Content->Copy();
 		m_spDoc->Content->Delete();
 
-		//Таблица
+		//РўР°Р±Р»РёС†Р°
 		{
 			m_spDoc->Paragraphs->Add();
 			Word::ParagraphPtr pr = m_spDoc->Paragraphs->Last;
@@ -84,32 +84,32 @@ namespace WP {
 			table->Cell(2, 2)->Range->ParagraphFormat->LineSpacing = 16;
 			table->Range->Paragraphs->KeepWithNext = -1; //true
 		}
-		//Заголовок
+		//Р—Р°РіРѕР»РѕРІРѕРє
 		{
 			m_spDoc->Paragraphs->Add();
 			Word::ParagraphPtr paraHeader = m_spDoc->Paragraphs->Last;
 			paraHeader->Range->Font->Reset();
 			paraHeader->Range->Font->Size = 14;//g
-			paraHeader->Range->Text = _bstr_t("\nЭКЗАМЕНАЦИОННЫЕ ВОПРОСЫ\n");
+			paraHeader->Range->Text = _bstr_t("\nР­РљР—РђРњР•РќРђР¦РРћРќРќР«Р• Р’РћРџР РћРЎР«\n");
 		}
-		//По дисц и для спец
+		//РџРѕ РґРёСЃС† Рё РґР»СЏ СЃРїРµС†
 		{
 			m_spDoc->Paragraphs->Add();
 			Word::ParagraphPtr prDisc = m_spDoc->Paragraphs->Last;
-			prDisc->Range->Text = _bstr_t(("по дисциплине «" + header.discipline + "»\n").c_str());
+			prDisc->Range->Text = _bstr_t(("РїРѕ РґРёСЃС†РёРїР»РёРЅРµ В«" + header.discipline + "В»\n").c_str());
 
 			m_spDoc->Paragraphs->Add();
 			Word::ParagraphPtr prSpec = m_spDoc->Paragraphs->Last;
-			prSpec->Range->Text = _bstr_t(("для специальности «" + header.specialty + "»\n").c_str());
+			prSpec->Range->Text = _bstr_t(("РґР»СЏ СЃРїРµС†РёР°Р»СЊРЅРѕСЃС‚Рё В«" + header.specialty + "В»\n").c_str());
 		}
-		//Содержат общие формулировки вопросов и тем
+		//РЎРѕРґРµСЂР¶Р°С‚ РѕР±С‰РёРµ С„РѕСЂРјСѓР»РёСЂРѕРІРєРё РІРѕРїСЂРѕСЃРѕРІ Рё С‚РµРј
 		{
 			m_spDoc->Paragraphs->Add();
 			Word::ParagraphPtr pr = m_spDoc->Paragraphs->Last;
-			pr->Range->Text = _bstr_t("Содержат общие формулировки вопросов и тем\n");
+			pr->Range->Text = _bstr_t("РЎРѕРґРµСЂР¶Р°С‚ РѕР±С‰РёРµ С„РѕСЂРјСѓР»РёСЂРѕРІРєРё РІРѕРїСЂРѕСЃРѕРІ Рё С‚РµРј\n");
 		}
 
-		//Вставка списка вопросов
+		//Р’СЃС‚Р°РІРєР° СЃРїРёСЃРєР° РІРѕРїСЂРѕСЃРѕРІ
 		m_spDoc->Paragraphs->Add();
 		m_spDoc->Paragraphs->Last->Range->Paste();
 	}
@@ -117,84 +117,84 @@ namespace WP {
 	void WordParser::createTickets(TicketsOptions opt)
 	{
 		if (m_spDoc == nullptr)
-			throw exception("Файл не выбран");
-		int numOfSections = opt.questionsSections.size();	//Требуемое кол-во секций вопросов (в билетах)
-		int numOfTickets = opt.ticketCount;					//Требуемое кол-во билетов
+			throw exception("Р¤Р°Р№Р» РЅРµ РІС‹Р±СЂР°РЅ");
+		int numOfSections = opt.questionsSections.size();	//РўСЂРµР±СѓРµРјРѕРµ РєРѕР»-РІРѕ СЃРµРєС†РёР№ РІРѕРїСЂРѕСЃРѕРІ (РІ Р±РёР»РµС‚Р°С…)
+		int numOfTickets = opt.ticketCount;					//РўСЂРµР±СѓРµРјРѕРµ РєРѕР»-РІРѕ Р±РёР»РµС‚РѕРІ
 		if (numOfSections != m_questionsLists.size())
-			throw exception("Внутренняя ошибка: кол-во списков не равно кол-ву секций");
+			throw exception("Р’РЅСѓС‚СЂРµРЅРЅСЏСЏ РѕС€РёР±РєР°: РєРѕР»-РІРѕ СЃРїРёСЃРєРѕРІ РЅРµ СЂР°РІРЅРѕ РєРѕР»-РІСѓ СЃРµРєС†РёР№");
 
 		srand((unsigned int)time(0));
 		//section/ticket/question
-		//TODO: Переместить в кучу, т.к. может возникнуть переполнение стека.
+		//TODO: РџРµСЂРµРјРµСЃС‚РёС‚СЊ РІ РєСѓС‡Сѓ, С‚.Рє. РјРѕР¶РµС‚ РІРѕР·РЅРёРєРЅСѓС‚СЊ РїРµСЂРµРїРѕР»РЅРµРЅРёРµ СЃС‚РµРєР°.
 		vector<vector<vector<int>>> allQuestions(numOfSections);
 
 		for (int sect = 0; sect < numOfSections; sect++) {
-			//Рассматриваем одну секцию
-			int numOfQuestInList = m_questionsLists[sect].numOfQuestions;		//Кол-во вопросов в текущем списке
-			int numOfQuestInSect = opt.questionsSections[sect].numOfQuestions;	//Требуемое кол-во вопросов в текущей секции
+			//Р Р°СЃСЃРјР°С‚СЂРёРІР°РµРј РѕРґРЅСѓ СЃРµРєС†РёСЋ
+			int numOfQuestInList = m_questionsLists[sect].numOfQuestions;		//РљРѕР»-РІРѕ РІРѕРїСЂРѕСЃРѕРІ РІ С‚РµРєСѓС‰РµРј СЃРїРёСЃРєРµ
+			int numOfQuestInSect = opt.questionsSections[sect].numOfQuestions;	//РўСЂРµР±СѓРµРјРѕРµ РєРѕР»-РІРѕ РІРѕРїСЂРѕСЃРѕРІ РІ С‚РµРєСѓС‰РµР№ СЃРµРєС†РёРё
 			if (numOfQuestInList < numOfQuestInSect)
-				throw exception(((string)"Вопросов в списке №" + to_string(sect + 1) + (string)" нехватает для заполнения билетов").c_str());
+				throw exception(((string)"Р’РѕРїСЂРѕСЃРѕРІ РІ СЃРїРёСЃРєРµ в„–" + to_string(sect + 1) + (string)" РЅРµС…РІР°С‚Р°РµС‚ РґР»СЏ Р·Р°РїРѕР»РЅРµРЅРёСЏ Р±РёР»РµС‚РѕРІ").c_str());
 			allQuestions[sect].resize(numOfTickets);
-			unordered_set<int> currentQuestionsSet;						//Список с вопросами
+			unordered_set<int> currentQuestionsSet;						//РЎРїРёСЃРѕРє СЃ РІРѕРїСЂРѕСЃР°РјРё
 			for (int i = 0; i < numOfQuestInList; i++)
 				currentQuestionsSet.insert(i);
 
 			int questionInList = 0;
 			for (int question = 0; question < numOfQuestInSect; question++) {
-				//Рассматриваем один из вопросов...
+				//Р Р°СЃСЃРјР°С‚СЂРёРІР°РµРј РѕРґРёРЅ РёР· РІРѕРїСЂРѕСЃРѕРІ...
 				for (int ticket = 0; ticket < numOfTickets; ticket++) {
-					//...в одном из билетов
-					if (questionInList < numOfQuestInList)						//Первичное заполенине оригинальными вопросами
+					//...РІ РѕРґРЅРѕРј РёР· Р±РёР»РµС‚РѕРІ
+					if (questionInList < numOfQuestInList)						//РџРµСЂРІРёС‡РЅРѕРµ Р·Р°РїРѕР»РµРЅРёРЅРµ РѕСЂРёРіРёРЅР°Р»СЊРЅС‹РјРё РІРѕРїСЂРѕСЃР°РјРё
 						allQuestions[sect][ticket].push_back(questionInList++);
-					else {														//Заполнение повторяющимеся вопросами
+					else {														//Р—Р°РїРѕР»РЅРµРЅРёРµ РїРѕРІС‚РѕСЂСЏСЋС‰РёРјРµСЃСЏ РІРѕРїСЂРѕСЃР°РјРё
 						unordered_set<int> allowQuestions(currentQuestionsSet);
 						for (int q : allQuestions[sect][ticket])
 							allowQuestions.erase(q);
-						//Добавляет случайный вопрос, но такой, которого еще нет в данной секции
+						//Р”РѕР±Р°РІР»СЏРµС‚ СЃР»СѓС‡Р°Р№РЅС‹Р№ РІРѕРїСЂРѕСЃ, РЅРѕ С‚Р°РєРѕР№, РєРѕС‚РѕСЂРѕРіРѕ РµС‰Рµ РЅРµС‚ РІ РґР°РЅРЅРѕР№ СЃРµРєС†РёРё
 						auto it = allowQuestions.begin();
 						int randQuestion = rand() % allowQuestions.size();
 						for (int i = 0; i < randQuestion; i++) 
 							++it;
 						allQuestions[sect][ticket].push_back(*it);
 					}
-					if (question == numOfQuestInSect - 1) //Последняя итерация внешнего цикла
-						random_shuffle(allQuestions[sect][ticket].begin(), allQuestions[sect][ticket].end()); //Рандомно перемешивает вопросы в билетах
+					if (question == numOfQuestInSect - 1) //РџРѕСЃР»РµРґРЅСЏСЏ РёС‚РµСЂР°С†РёСЏ РІРЅРµС€РЅРµРіРѕ С†РёРєР»Р°
+						random_shuffle(allQuestions[sect][ticket].begin(), allQuestions[sect][ticket].end()); //Р Р°РЅРґРѕРјРЅРѕ РїРµСЂРµРјРµС€РёРІР°РµС‚ РІРѕРїСЂРѕСЃС‹ РІ Р±РёР»РµС‚Р°С…
 				}
 			}
-			random_shuffle(allQuestions[sect].begin(), allQuestions[sect].end()); //Рандомно перемешивает билеты
+			random_shuffle(allQuestions[sect].begin(), allQuestions[sect].end()); //Р Р°РЅРґРѕРјРЅРѕ РїРµСЂРµРјРµС€РёРІР°РµС‚ Р±РёР»РµС‚С‹
 		}
 
-		m_spDoc->Tables->Item(1)->Range->Copy(); //Копирование таблицы из заголовка
+		m_spDoc->Tables->Item(1)->Range->Copy(); //РљРѕРїРёСЂРѕРІР°РЅРёРµ С‚Р°Р±Р»РёС†С‹ РёР· Р·Р°РіРѕР»РѕРІРєР°
 		
 
 		for (int i = 0; i < numOfTickets; i++) {
-			m_showMessage("Создание билета " + to_string(i + 1) + "/" + to_string(numOfTickets));
-			//Заголовок билета
+			m_showMessage("РЎРѕР·РґР°РЅРёРµ Р±РёР»РµС‚Р° " + to_string(i + 1) + "/" + to_string(numOfTickets));
+			//Р—Р°РіРѕР»РѕРІРѕРє Р±РёР»РµС‚Р°
 			{
 				m_spDoc->Paragraphs->Add();
 				Word::ParagraphPtr prTable = m_spDoc->Paragraphs->Last;
-				prTable->Range->Paste(); //Вставка таблицы из заголовка
+				prTable->Range->Paste(); //Р’СЃС‚Р°РІРєР° С‚Р°Р±Р»РёС†С‹ РёР· Р·Р°РіРѕР»РѕРІРєР°
 				//prTable->KeepWithNext = -1; //true
 			}
-			//Номер билета
+			//РќРѕРјРµСЂ Р±РёР»РµС‚Р°
 			{
 				m_spDoc->Paragraphs->Add();
 				Word::ParagraphPtr prTitle = m_spDoc->Paragraphs->Last;
 				prTitle->Alignment = Word::WdParagraphAlignment::wdAlignParagraphCenter;//g
 				prTitle->Range->Font->Reset();
-				prTitle->Range->Text = _bstr_t(("ЭКЗАМЕНАЦИОННЫЙ БИЛЕТ №" + to_string(i + 1)).c_str());
+				prTitle->Range->Text = _bstr_t(("Р­РљР—РђРњР•РќРђР¦РРћРќРќР«Р™ Р‘РР›Р•Рў в„–" + to_string(i + 1)).c_str());
 				prTitle->Range->Font->Bold = 1;
 				prTitle->Range->Font->Size = 18;//g
 				prTitle->KeepWithNext = -1; //true
 			}
-			//Назв дисц и спец + вопросы
+			//РќР°Р·РІ РґРёСЃС† Рё СЃРїРµС† + РІРѕРїСЂРѕСЃС‹
 			{
 				m_spDoc->Paragraphs->Add();
 				Word::ParagraphPtr prQuestions = m_spDoc->Paragraphs->Last;
 				prQuestions->Range->Font->Reset();
 				prQuestions->Range->Font->Size = 14;//g
-				prQuestions->Range->Paragraphs->Add()->Range->Text = _bstr_t(("\nпо дисциплине «" + opt.disciplineTitle + "»\n").c_str());
-				prQuestions->Range->Paragraphs->Add()->Range->Text = _bstr_t(("\nдля специальности «" + opt.specialtyName + "»\n").c_str());
+				prQuestions->Range->Paragraphs->Add()->Range->Text = _bstr_t(("\nРїРѕ РґРёСЃС†РёРїР»РёРЅРµ В«" + opt.disciplineTitle + "В»\n").c_str());
+				prQuestions->Range->Paragraphs->Add()->Range->Text = _bstr_t(("\nРґР»СЏ СЃРїРµС†РёР°Р»СЊРЅРѕСЃС‚Рё В«" + opt.specialtyName + "В»\n").c_str());
 				prQuestions->Range->Font->Size = 12;//g
 				prQuestions->Alignment = Word::WdParagraphAlignment::wdAlignParagraphLeft;//g
 
@@ -213,7 +213,7 @@ namespace WP {
 
 				prQuestions->KeepWithNext = -1; //true
 			}
-			//ФИО препода
+			//Р¤РРћ РїСЂРµРїРѕРґР°
 			{
 				m_spDoc->Paragraphs->Last->Alignment = Word::WdParagraphAlignment::wdAlignParagraphRight;//g
 
@@ -229,7 +229,7 @@ namespace WP {
 				Word::ParagraphPtr prTeacherL = prTeacher->Range->Paragraphs->Add();
 				prTeacherL->Range->Font->Reset();
 				prTeacherL->Range->Font->Bold = 1;
-				prTeacherL->Range->Text = "Преподаватель _________ ";
+				prTeacherL->Range->Text = "РџСЂРµРїРѕРґР°РІР°С‚РµР»СЊ _________ ";
 				prTeacherL->Range->Font->Size = 14;//g
 				prTeacherL->KeepWithNext = -1; //true
 
@@ -237,21 +237,21 @@ namespace WP {
 				m_spDoc->Paragraphs->Add()->KeepWithNext = 0; //false
 			}
 		}
-		m_showMessage("Создание билетов завершено.");
+		m_showMessage("РЎРѕР·РґР°РЅРёРµ Р±РёР»РµС‚РѕРІ Р·Р°РІРµСЂС€РµРЅРѕ.");
 	}
 
 	void WordParser::saveAs(string path)
 	{
 		if (path.empty())
-			throw exception("Файл не выбран");
-		m_showMessage("Сохранение файла: " + path);
+			throw exception("Р¤Р°Р№Р» РЅРµ РІС‹Р±СЂР°РЅ");
+		m_showMessage("РЎРѕС…СЂР°РЅРµРЅРёРµ С„Р°Р№Р»Р°: " + path);
 		m_spDoc->SaveAs(&_variant_t(path.c_str()));
 	}
 
 	void WordParser::closeFile()
 	{
 		if (m_spDoc != nullptr) {
-			m_showMessage("Закрытие файла: " + (string)m_spDoc->Name);
+			m_showMessage("Р—Р°РєСЂС‹С‚РёРµ С„Р°Р№Р»Р°: " + (string)m_spDoc->Name);
 			m_spDoc->Close();
 			m_spDoc = nullptr;
 		}
